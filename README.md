@@ -368,11 +368,6 @@ vtune-gui results/naive_memory
 - Memory bandwidth utilization
 - DRAM accesses
 
-**Expected Results:** (Double check)
-- High L1 cache miss rate (~30-50%)
-- Poor memory locality score
-- Memory bandwidth as bottleneck
-
 ### Part 2: Profile Blocked Implementation
 
 #### Step 1: Run Hotspots Analysis
@@ -387,7 +382,6 @@ vtune-gui results/blocked_hotspots
 
 **Compare with Naive:**
 - Total execution time should be lower
-- Time distribution across loops
 
 #### Step 2: Run Memory Access Analysis
 
@@ -399,15 +393,10 @@ vtune -collect memory-access \
 vtune-gui results/blocked_memory
 ```
 
-**What to Look For:** (Double check)
+**What to Look For:**
 - Improved L1 cache hit rate
 - Lower L2/L3 miss rates
 - Better memory access patterns
-
-**Expected Results:** (Double check)
-- L1 cache miss rate reduced to ~10-20%
-- Fewer DRAM accesses per operation
-- Higher effective memory bandwidth
 
 #### Step 3: Experiment with Block Sizes
 
