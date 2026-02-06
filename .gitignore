@@ -1,0 +1,24 @@
+# Build artifacts
+build/
+out/
+*.o
+*.obj
+*.exe
+
+# VTune results
+results/
+
+# Editor 
+.vscode/
+.idea/
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# Zip files
+
+# MD Files
+PRESENTATION.md
+
