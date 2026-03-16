@@ -105,8 +105,25 @@ kernel.perf_event_paranoid=-1
 vtune-self-checker.sh
 ```
 
-**5. Advanced: VTune sampling driver - NOT WORKING CURRENTLY**
+**5. Advanced: VTune sampling driver - DOUBLE CHECK ON A NEW MACHINE**
 ```bash
+# Navigate to the driver source directory
+cd /opt/intel/oneapi/vtune/latest/sepdk/src/
+
+# Build the drivers
+sudo ./build-driver
+
+# Load the drivers
+sudo ./insmod-sep -g vtune
+
+# Verify drivers are loaded, you should see sep5
+lsmod | grep sep
+
+# Check driver permissions
+ls -l /dev/sep*
+
+# Add your user to vtune group. Requires re-login
+sudo usermod -a -G vtune $USER
 ```
 
 ## Tutorial Overview
