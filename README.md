@@ -17,7 +17,7 @@ This tutorial demonstrates how to use Intel VTune Profiler to analyze and optimi
 
 ### Required Software
 - **Intel VTune Profiler** (part of Intel oneAPI Toolkit or standalone)
-- **C Compiler** with C17 support (gcc or icc)
+- **C Compiler** with C17 support
 - **OpenMP** support for parallel implementation
 - Linux operating system
 
@@ -39,7 +39,7 @@ source <vtune-install-dir>/env/vars.sh
 
 **Automatic Intel oneAPI Environment Setup**
 ```bash
-#Initialize Intel oneAPI environment for interactive shells only
+#Initialize Intel oneAPI environment whenever you open a new terminal
 if [[ $- == *i* ]]; then
     source /opt/intel/oneapi/setvars.sh
 fi
@@ -183,7 +183,6 @@ make test
 ```
 for i = 0 to N-1:
     for j = 0 to N-1:
-        C[i][j] = 0
         for k = 0 to N-1:
             C[i][j] += A[i][k] * B[k][j]
 ```
@@ -218,6 +217,17 @@ for ii = 0 to N-1 step BLOCK_SIZE:
 **Algorithm:**
 - Same as blocked but with OpenMP parallelization
 - `#pragma omp parallel for` distributes blocks across threads
+
+```
+#pragma omp parallel for schedule(dynamic)
+for ii = 0 to N-1 step BLOCK_SIZE:
+    for jj = 0 to N-1 step BLOCK_SIZE:
+        for kk = 0 to N-1 step BLOCK_SIZE:
+            for i = ii to min(ii+BLOCK_SIZE, N-1):
+                for j = jj to min(jj+BLOCK_SIZE, N-1):
+                    for k = kk to min(kk+BLOCK_SIZE, N-1):
+                        C[i][j] += A[i][k] * B[k][j]
+```
 
 **Performance Characteristics:**
 - ✅ Exploits multi-core processors
@@ -349,7 +359,6 @@ vtune-gui results/naive_hotspots
 **What to Look For:**
 - Time spent in `matrix_multiply_naive` function
 - Time spent in individual loops
-- Function call overhead
 
 #### Step 2: Run Memory Access Analysis
 
@@ -362,11 +371,11 @@ vtune -collect memory-access \
 vtune-gui results/naive_memory
 ```
 
-**What to Look For:** (Double check)
-- L1 cache miss rate (likely high due to column-wise access of matrix B)
-- L2/L3 cache miss rates
-- Memory bandwidth utilization
-- DRAM accesses
+**What to Look For:**
+- How often was the CPU stalled on each of L1/L2/L3 Cache or DRAM
+- On CPUs with heterogeneous architecture these metrics are per type of Core
+- Number of Loads and Stores
+- Latency Histogram
 
 ### Part 2: Profile Blocked Implementation
 
@@ -391,12 +400,14 @@ vtune -collect memory-access \
       -- ./build/matrix_blocked 1024 64
 
 vtune-gui results/blocked_memory
+
+# You can also compare results. Vtune will calculate naive_memory - blocked_memory metrics
+vtune-gui results/naive_memory/ results/blocked_memory/
 ```
 
 **What to Look For:**
-- Improved L1 cache hit rate
-- Lower L2/L3 miss rates
-- Better memory access patterns
+- Check memory bound metrics. Lower percentages for memory stalls
+- Lower Average Latency (cycles)
 
 #### Step 3: Experiment with Block Sizes
 
@@ -438,11 +449,8 @@ vtune-gui results/parallel_threading
 ```
 
 **What to Look For:**
-- Thread concurrency (should be close to number of threads)
-- Wait time (should be low)
-- Spin time
+- Effective CPU Utilization
 - Thread utilization timeline
-- Load balancing across threads
 
 #### Step 3: Run Memory Access Analysis
 
@@ -455,8 +463,8 @@ vtune-gui results/parallel_memory
 ```
 
 **What to Look For:**
-- Memory bandwidth with multiple threads
-- Cache coherency issues
+- In Bottom-up analysis window, you can select the Grouping: Function/Thread/Logical Core/Call Stack and here you can observe on which physical core is each thread spending time.
+
 
 ### Part 4: Compare All Implementations
 
@@ -512,22 +520,9 @@ In VTune GUI:
 1. Click on a function in Bottom-up view
 2. Double-click to see source code
 3. View line-by-line performance data
-4. Identify hot loops
+4. Compare C code to Assembly code
 
-### 3. Custom Analysis with Command Line
-
-```bash
-# Get top 10 functions by CPU time
-vtune -report hotspots -result-dir results/naive_hotspots -format csv -report-output hotspots.csv
-
-# Get call stack information
-vtune -report callstacks -result-dir results/naive_hotspots
-
-# Get detailed metrics
-vtune -report hw-events -result-dir results/naive_memory
-```
-
-### 4. Analyzing Different Matrix Sizes
+### 3. Analyzing Different Matrix Sizes
 
 ```bash
 for SIZE in 256 512 1024 2048; do
@@ -540,11 +535,11 @@ done
 # Compare performance scaling
 for SIZE in 256 512 1024 2048; do
     echo "=== Size: $SIZE ==="
-    vtune -report summary -result-dir results/naive_${SIZE} | grep "Elapsed Time"
+    vtune -report summary -result-dir results/naive_${SIZE} | grep "Time elapsed:"
 done
 ```
 
-### 5. Finding Optimal Block Size
+### 4. Finding Optimal Block Size
 
 ```bash
 #!/bin/bash
@@ -558,7 +553,7 @@ for BS in 8 16 24 32 48 64 96 128 192 256; do
 done
 ```
 
-### 6. Profiling with Different Optimization Levels
+### 5. Profiling with Different Optimization Levels
 
 Rebuild with different optimization flags and compare:
 
@@ -587,11 +582,6 @@ done
 ```bash
 # Build everything
 make all
-
-# Quick profile (uses helper script)
-./scripts/quick_profile.sh naive hotspots 1024
-./scripts/quick_profile.sh blocked memory "1024 64"
-./scripts/quick_profile.sh parallel threading "1024 64 4"
 
 # Full automated profiling
 ./scripts/profile_all.sh

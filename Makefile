@@ -1,29 +1,51 @@
 CC = gcc
-CCFLAGS = -O3 -g -fno-omit-frame-pointer -std=c17
-OMPFLAGS = -fopenmp
+ICX = icx
+
+CC_FLAGS = -O3 -g -fno-omit-frame-pointer -std=c17
+ICX_FLAGS = -O3 -g -fno-omit-frame-pointer
+
+CC_OMPFLAGS = -fopenmp
+ICX_OMPFLAGS = -qopenmp
 
 SRC_DIR = src
 BUILD_DIR = build
 
-TARGETS = $(BUILD_DIR)/matrix_naive \
-          $(BUILD_DIR)/matrix_blocked \
-          $(BUILD_DIR)/matrix_parallel
+CC_TARGETS = $(BUILD_DIR)/matrix_naive \
+             $(BUILD_DIR)/matrix_blocked \
+             $(BUILD_DIR)/matrix_parallel
 
-.PHONY: all clean
+ICX_TARGETS = $(BUILD_DIR)/matrix_naive_icx \
+	      $(BUILD_DIR)/matrix_blocked_icx \
+	      $(BUILD_DIR)/matrix_parallel_icx
+ 
+.PHONY: all clean gcc icx
 
-all: $(BUILD_DIR) $(TARGETS)
+all: $(BUILD_DIR) gcc icx
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
+gcc: $(BUILD_DIR) $(CC_TARGETS)
+
 $(BUILD_DIR)/matrix_naive: $(SRC_DIR)/matrix_naive.c
-	$(CC) $(CCFLAGS) $< -o $@
+	$(CC) $(CC_FLAGS) $< -o $@
 
 $(BUILD_DIR)/matrix_blocked: $(SRC_DIR)/matrix_blocked.c
-	$(CC) $(CCFLAGS) $< -o $@
+	$(CC) $(CC_FLAGS) $< -o $@
 
 $(BUILD_DIR)/matrix_parallel: $(SRC_DIR)/matrix_parallel.c
-	$(CC) $(CCFLAGS) $(OMPFLAGS) $< -o $@
+	$(CC) $(CC_FLAGS) $(CC_OMPFLAGS) $< -o $@
+
+icx: $(BUILD_DIR) $(ICX_TARGETS)
+
+$(BUILD_DIR)/matrix_naive_icx: $(SRC_DIR)/matrix_naive.c
+	$(ICX) $(ICX_FLAGS) $< -o $@
+
+$(BUILD_DIR)/matrix_blocked_icx: $(SRC_DIR)/matrix_blocked.c
+	$(ICX) $(ICX_FLAGS) $< -o $@
+
+$(BUILD_DIR)/matrix_parallel_icx: $(SRC_DIR)/matrix_parallel.c
+	$(ICX) $(ICX_FLAGS) $(ICX_OMPFLAGS) $< -o $@
 
 clean:
 	rm -rf $(BUILD_DIR)
@@ -38,3 +60,13 @@ test: all
 	@echo ""
 	@echo "=== Testing Parallel Implementation ==="
 	@$(BUILD_DIR)/matrix_parallel 512 64 4
+			
+	@echo "=== Testing ICX Naive Implementation ==="
+	@$(BUILD_DIR)/matrix_naive_icx 512
+	@echo ""
+	@echo "=== Testing ICX Blocked Implementation ==="
+	@$(BUILD_DIR)/matrix_blocked_icx 512 64
+	@echo ""
+	@echo "=== Testing ICX Parallel Implementation ==="
+	@$(BUILD_DIR)/matrix_parallel_icx 512 64 4
+
