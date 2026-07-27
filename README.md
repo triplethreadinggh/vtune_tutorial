@@ -125,7 +125,7 @@ kernel.nmi_watchdog=0
 vtune-self-checker.sh
 ```
 
-**6. Advanced: VTune sampling driver - DOUBLE CHECK ON A NEW MACHINE**
+**6. Advanced: VTune sampling driver**\
 VTune has two ways to collect hardware event-based samples (EBS):
 
 - **Driverless (perf) mode** — VTune drives the Linux `perf_event_open`
@@ -159,6 +159,12 @@ ls -l /dev/sep*
 sudo usermod -a -G vtune $USER
 ```
 
+**Verify configuration:**
+```bash
+vtune-self-checker.sh
+```
+
+
 ## Tutorial Overview
 
 We'll analyze three implementations of matrix multiplication:
@@ -167,6 +173,7 @@ We'll analyze three implementations of matrix multiplication:
    - Simple triple-nested loop: O(n³)
    - Poor cache locality
    - Baseline for comparison
+
 
 2. **Blocked Implementation** (`matrix_blocked.cpp`)
    - Cache-aware blocking/tiling
