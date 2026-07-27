@@ -26,9 +26,9 @@ This tutorial demonstrates how to use Intel VTune Profiler to analyze and optimi
 **Option 1: Intel oneAPI Toolkit (Recommended)**
 ```bash
 # Download from: https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit-download.html
-# Make sure Linux is selected for the Operating System. Look at the Installation form the Command Line. It should have a command similar to this, with the latest oneAPI Toolkit version:
+# Make sure Linux is selected for the Operating System. Look at the Installation form the Command Line.
+# It should have a command similar to this, with the latest oneAPI Toolkit version:
 wget https://registrationcenter-download.intel.com/akdlm/IRC_NAS/33cb2a22-ddf1-4aa9-8d68-1f5a118acaf2/intel-oneapi-toolkit-2026.1.0.192_offline.sh
-# Move the downloaded file into /opt and switch directory to cd /opt. From /opt run:
 sudo sh ./intel-oneapi-toolkit-2026.1.0.192_offline.sh -a --silent --cli --eula accept
 # After installation, source the environment:
 source /opt/intel/oneapi/setvars.sh
@@ -43,7 +43,10 @@ source <vtune-install-dir>/env/vars.sh
 
 **Automatic Intel oneAPI Environment Setup**
 ```bash
-#Initialize Intel oneAPI environment whenever you open a new terminal
+# Initialize Intel oneAPI environment whenever you open a new terminal
+vi ~/.bashrci
+
+# Pate the following code at the end of the file
 if [[ $- == *i* ]]; then
     source /opt/intel/oneapi/setvars.sh
 fi
@@ -63,9 +66,6 @@ sysctl kernel.yama.ptrace_scope
 
 #If the output is 1 or 2, allow VTune to attach temporarily
 sudo sysctl -w kernel.yama.ptrace_scope=0
-
-#If you want to make it parmanent (requires reboot) - NOT WORKING
-
 ```
 
 **2. Set file descriptor limit:**
@@ -103,6 +103,18 @@ vi /etc/sysctl.d/99-sysctl.conf
 #Add at the end of the file, or set to -1 if already exists
 kernel.perf_event_paranoid=-1
 ```
+**5. Disable watchdog timer
+```bash
+# Modern CPUs have only a few hardware performance-monioring counters (PMCs) per core.
+# There is often 4 to 8 of them and we will need as many as possible for our VTune measurements.
+# That is why we need to disable the watchdog timer which usually claims one of these counters.
+sudo sysctl -w kernel.nmi_watchdog=0
+
+# If you want to make it permanent (requires reboot)
+vi /etc/sysctl.d/99-sysctl.conf
+
+# Add at the end of the file:
+kernel.nmi_watchdog=0
 
 **Verify configuration:**
 ```bash
