@@ -26,10 +26,13 @@ This tutorial demonstrates how to use Intel VTune Profiler to analyze and optimi
 **Option 1: Intel oneAPI Toolkit (Recommended)**
 ```bash
 # Download from: https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit-download.html
-# Make sure Linux is selected for the Operating System. Look at the Installation form the Command Line.
+# Make sure Linux is selected for the Operating System. Look at the Installation from the Command Line.
 # It should have a command similar to this, with the latest oneAPI Toolkit version:
 wget https://registrationcenter-download.intel.com/akdlm/IRC_NAS/33cb2a22-ddf1-4aa9-8d68-1f5a118acaf2/intel-oneapi-toolkit-2026.1.0.192_offline.sh
+
+# Install it. Default location is /opt
 sudo sh ./intel-oneapi-toolkit-2026.1.0.192_offline.sh -a --silent --cli --eula accept
+
 # After installation, source the environment:
 source /opt/intel/oneapi/setvars.sh
 ```
@@ -46,7 +49,7 @@ source <vtune-install-dir>/env/vars.sh
 # Initialize Intel oneAPI environment whenever you open a new terminal
 vi ~/.bashrci
 
-# Pate the following code at the end of the file
+# Paste the following code at the end of the file
 if [[ $- == *i* ]]; then
     source /opt/intel/oneapi/setvars.sh
 fi
@@ -103,7 +106,7 @@ vi /etc/sysctl.d/99-sysctl.conf
 #Add at the end of the file, or set to -1 if already exists
 kernel.perf_event_paranoid=-1
 ```
-**5. Disable watchdog timer
+**5. Disable watchdog timer**
 ```bash
 # Modern CPUs have only a few hardware performance-monioring counters (PMCs) per core.
 # There is often 4 to 8 of them and we will need as many as possible for our VTune measurements.
@@ -115,13 +118,27 @@ vi /etc/sysctl.d/99-sysctl.conf
 
 # Add at the end of the file:
 kernel.nmi_watchdog=0
+```
 
 **Verify configuration:**
 ```bash
 vtune-self-checker.sh
 ```
 
-**5. Advanced: VTune sampling driver - DOUBLE CHECK ON A NEW MACHINE**
+**6. Advanced: VTune sampling driver - DOUBLE CHECK ON A NEW MACHINE**
+VTune has two ways to collect hardware event-based samples (EBS):
+
+- **Driverless (perf) mode** — VTune drives the Linux `perf_event_open`
+  interface. No kernel module required; it's governed by the
+  `perf_event_paranoid` setting you configured above. This works out of the
+  box but can't fully reach uncore events or some system-wide analyses.
+- **Driver mode** — Intel's SEP kernel driver (`sep5`) talks to the PMU
+  directly. Lower overhead, finer granularity, and required for advanced
+  collection (uncore events, full Microarchitecture Exploration, etc.).
+
+As of now, **perf mode is ready** thanks to the earlier steps — you can start
+profiling immediately. But for full capabilities, set up **driver mode** below.
+
 ```bash
 # Navigate to the driver source directory
 cd /opt/intel/oneapi/vtune/latest/sepdk/src/
