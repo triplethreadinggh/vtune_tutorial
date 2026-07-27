@@ -128,15 +128,15 @@ vtune-self-checker.sh
 **6. Advanced: VTune sampling driver**\
 VTune has two ways to collect hardware event-based samples (EBS):
 
-- **Driverless (perf) mode** — VTune drives the Linux `perf_event_open`
+- **Driverless (perf) mode** - VTune drives the Linux `perf_event_open`
   interface. No kernel module required; it's governed by the
   `perf_event_paranoid` setting you configured above. This works out of the
   box but can't fully reach uncore events or some system-wide analyses.
-- **Driver mode** — Intel's SEP kernel driver (`sep5`) talks to the PMU
+- **Driver mode** - Intel's SEP kernel driver (`sep5`) talks to the PMU
   directly. Lower overhead, finer granularity, and required for advanced
   collection (uncore events, full Microarchitecture Exploration, etc.).
 
-As of now, **perf mode is ready** thanks to the earlier steps — you can start
+As of now, **perf mode is ready** thanks to the earlier steps - you can start
 profiling immediately. But for full capabilities, set up **driver mode** below.
 
 ```bash
