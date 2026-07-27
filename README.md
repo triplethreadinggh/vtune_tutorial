@@ -26,6 +26,10 @@ This tutorial demonstrates how to use Intel VTune Profiler to analyze and optimi
 **Option 1: Intel oneAPI Toolkit (Recommended)**
 ```bash
 # Download from: https://www.intel.com/content/www/us/en/developer/tools/oneapi/base-toolkit-download.html
+# Make sure Linux is selected for the Operating System. Look at the Installation form the Command Line. It should have a command similar to this, with the latest oneAPI Toolkit version:
+wget https://registrationcenter-download.intel.com/akdlm/IRC_NAS/33cb2a22-ddf1-4aa9-8d68-1f5a118acaf2/intel-oneapi-toolkit-2026.1.0.192_offline.sh
+# Move the downloaded file into /opt and switch directory to cd /opt. From /opt run:
+sudo sh ./intel-oneapi-toolkit-2026.1.0.192_offline.sh -a --silent --cli --eula accept
 # After installation, source the environment:
 source /opt/intel/oneapi/setvars.sh
 ```
